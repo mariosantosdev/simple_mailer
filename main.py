@@ -43,31 +43,37 @@ def main():
         show_help()
         return
 
-    from_user = get_params('-f', 'No sender specified (-f)')
-    to = get_emails('-t', 'No recipient specified (-t)')
-    subject = get_params('-s', 'No subject specified (-s)')
+    print("[Core] Initializing...")
+    from_user = get_params('-f', '[Error] No sender specified (-f)')
+    to = get_emails('-t', '[Error] No recipient specified (-t)')
+    subject = get_params('-s', '[Error] No subject specified (-s)')
     message = get_params('-m')
     file = get_params('-a')
-    key = get_params('-k', 'No API key specified (-k)')
+    key = get_params('-k', '[Error] No API key specified (-k)')
     html = read_html(file) if file is not None else None
     body = html if file is not None else message
 
     if body is None:
-        print('No file (-a) or message (-m) specified')
+        print('[Error] No file (-a) or message (-m) specified')
         exit()
 
-    try:
-        message = Mail(
-        from_email=from_user,
-        to_emails=to,
-        subject=subject,
-        html_content=body)
-        
-        sg = SendGridAPIClient(key)
-        sg.send(message)
-        print("[200] Email sent successfully")
-    except Exception as e:
-        print(e)
+    for mail in to:
+        try:
+            message = Mail(
+            from_email=from_user,
+            to_emails=mail,
+            subject=subject,
+            html_content=body)
+            
+            sg = SendGridAPIClient(key)
+            sg.send(message)
+            print('[Success] Email sent to ' + mail)
+
+        except Exception as e:
+            print("[Error] Error to send mail to " + mail + " (" + str(e) + ")")
+            continue
+
+    print("[Core] Finished script")
 
 if __name__ == "__main__":
     main()
